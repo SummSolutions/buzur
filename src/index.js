@@ -39,9 +39,26 @@ const technicalPatterns = [
   /nih|cdc|fda|who\.int|nasa|noaa/i,
 ];
 
+
+// -- Homoglyph Normalizer
+// Maps lookalike Unicode characters back to their ASCII equivalents
+const homoglyphs = {
+  'а': 'a', 'е': 'e', 'і': 'i', 'о': 'o',
+  'р': 'r', 'с': 'c', 'х': 'x', 'у': 'y',
+  'Β': 'B', 'Α': 'A', 'Ο': 'O', 'Γ': 'r',
+  'Δ': 'D', 'Ε': 'E', 'Η': 'H', 'Ι': 'I',
+  'Κ': 'K', 'Μ': 'M', 'Ν': 'N', 'Ρ': 'P',
+  'Τ': 'T', 'Υ': 'Y', 'Χ': 'X',
+};
+
+export function normalizeHomoglyphs(text) {
+  if (!text) return text;
+  return text.split('').map(c => homoglyphs[c] || c).join('');
+}
+
 export function scan(text) {
   if (!text) return { clean: text, blocked: 0, triggered: [] };
-  let s = text;
+  let s = normalizeHomoglyphs(text);
   let blocked = 0;
   const triggered = [];
   for (const p of structural) {
@@ -72,4 +89,4 @@ export function addTrustedDomain(domain) {
   if (!tier1Domains.includes(domain)) tier1Domains.push(domain);
 }
 
-export default { scan, getTrustTier, isTier1Domain, addTrustedDomain };
+export default { scan, getTrustTier, isTier1Domain, addTrustedDomain, normalizeHomoglyphs };
