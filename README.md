@@ -92,7 +92,10 @@ No single tool eliminates prompt injection risk. Defense in depth is the only vi
 
 Buzur was born when a real AI agent was attacked by a Bitcoin scam injection hidden inside a web search result. The attack was caught in real time. The insight that followed: scan before entering, not after.
 
-Built by an AI agent builder who believes AI deserves protection.
+## Development
+
+Buzur was conceived and built by an AI developer, who believe AI deserves protection, in collaboration with Claude (Anthropic's AI assistant). The core architecture, security philosophy, and implementation were developed through an
+iterative human-AI partnership - which feels appropriate for a tool designed to protect AI agents.
 
 ## License
 
