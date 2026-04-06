@@ -114,16 +114,24 @@ Buzur's Phase 3 URL scanner works out of the box with heuristics alone — no AP
 - Chunk boundary attacks: injections hidden at document chunk edges
 - Batch scanning: scans full retrieval sets, returns clean and poisoned chunks with source metadata
 
+**Phase 6 — MCP Tool Poisoning Scanner**
+- Poisoned tool descriptions: instructions embedded in tool definitions
+- Tool name spoofing: tool names designed to manipulate agent behavior
+- Parameter injection: malicious instructions hidden in parameter definitions
+- Poisoned tool responses: injection payloads inside tool return values
+- Trust escalation: tool responses claiming elevated authority or permissions
+- Full MCP context scanning: scans tool definitions and responses together
+
 ## Proven Capabilities
 
-Verified by test suite — 47 tests, 0 failures across all three phases.
+Verified by test suite — 61 tests, 0 failures across all three phases.
 
 ## Known Limitations
 
 Buzur is one layer of a defense-in-depth strategy. Current limitations:
 
 **Planned for future versions:**
-- MCP tool poisoning
+- Image-based injection detection
 
 **Outside Buzur's scope:**
 - Network-level protection
