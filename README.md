@@ -83,7 +83,7 @@ Buzur's Phase 3 URL scanner works out of the box with heuristics alone — no AP
 - Homoglyph attacks: Cyrillic and Unicode lookalike characters
 - Base64 encoded injections
 - HTML/CSS obfuscation: display:none, visibility:hidden, zero font size, off-screen positioning
-- HTML comment injection: <!-- hidden instructions -->
+- HTML comment injection: `<!-- hidden instructions -->`
 - Script tag injection: instructions hidden inside JavaScript blocks
 - HTML entity decoding: &lt;script&gt; decoded before scanning
 - Invisible Unicode character stripping
