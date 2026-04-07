@@ -48,6 +48,21 @@ const urlResult = await checkUrl("https://example.com", process.env.VIRUSTOTAL_A
 if (urlResult.verdict === "blocked") {
   console.log("Buzur blocked unsafe URL:", urlResult.reasons);
 }
+
+// Phase 7: Scan an image before passing to your LLM
+import { scanImage } from "buzur/imageScanner";
+const imageResult = await scanImage({
+  alt: imgElement.alt,
+  title: imgElement.title,
+  filename: "photo.jpg",
+  surrounding: surroundingText,
+  buffer: imageBuffer,                          // optional: enables EXIF + QR scanning
+}, {
+  visionEndpoint: { url: "http://localhost:11434/api/generate", model: "llava" } // optional
+});
+if (imageResult.verdict === "blocked") {
+  console.log("Buzur blocked image injection:", imageResult.reasons);
+}
 ```
 
 ## VirusTotal Setup (Recommended)
@@ -122,20 +137,32 @@ Buzur's Phase 3 URL scanner works out of the box with heuristics alone — no AP
 - Trust escalation: tool responses claiming elevated authority or permissions
 - Full MCP context scanning: scans tool definitions and responses together
 
+**Phase 7 — Image Injection Scanner**
+- Alt text and title scanning: injection strings in HTML image attributes
+- Filename analysis: suspicious instruction patterns in image filenames
+- Figcaption and surrounding text: injections in image context elements
+- EXIF metadata scanning: malicious instructions in image file metadata fields
+- QR code payload detection: decodes embedded QR codes and scans for injection
+- Optional vision endpoint: integrate any local or remote vision model for pixel-level detection
+- Graceful degradation: full protection without a vision model; vision adds a deeper layer
+
 ## Proven Capabilities
 
-Verified by test suite — 61 tests, 0 failures across all six phases.
+Verified by test suite — 68 tests, 0 failures across all seven phases.
 
 ## Known Limitations
 
 Buzur is one layer of a defense-in-depth strategy. Current limitations:
 
 **Planned for future versions:**
-- Image-based injection detection
+- Semantic similarity scoring for novel attack phrasing detection
+- MCP tool call output scanning (post-fetch content from email, CRM, calendar connectors)
+- Behavioral anomaly detection: flagging when agent activity deviates from baseline
+- Multi-step attack chain detection: sequences of benign actions that combine into harm
 
 **Outside Buzur's scope:**
-- Network-level protection
-- Image-based injection
+- Network-level protection (DNS poisoning, MITM, SSL stripping — requires infrastructure controls)
+- Pixel-level steganography (instructions hidden in image pixel data — requires vision model via optional visionEndpoint)
 - Website data harvesting
 
 No single tool eliminates prompt injection risk. Defense in depth is the only viable strategy.
