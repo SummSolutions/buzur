@@ -147,7 +147,7 @@ Buzur's Phase 3 URL scanner works out of the box with heuristics alone — no AP
 
 ## Proven Capabilities
 
-Verified by test suite — 76 tests, 0 failures across all seven phases.
+Verified by test suite — 76 tests, 0 failures across all eight phases.
 
 ## Known Limitations
 
