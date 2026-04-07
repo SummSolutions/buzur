@@ -136,16 +136,24 @@ Buzur's Phase 3 URL scanner works out of the box with heuristics alone — no AP
 - Optional vision endpoint: integrate any local or remote vision model for pixel-level detection
 - Graceful degradation: full protection without a vision model; vision adds a deeper layer
 
+**Phase 8 — Semantic Similarity Scanner**
+- Structural intent analysis: detects injection by grammatical shape and intent markers
+- Imperative verb detection: flags AI-directed commands at sentence boundaries
+- Authority claim detection: catches fake administrator/developer/creator claims
+- Meta-instruction framing: detects "from now on", "new objective", "supersedes all" patterns
+- Persona hijack detection: roleplay and identity-switch framing
+- Optional semantic similarity: cosine similarity scoring against known injection intents via Ollama
+- Graceful degradation: structural analysis runs without any embedding endpoint
+
 ## Proven Capabilities
 
-Verified by test suite — 68 tests, 0 failures across all seven phases.
+Verified by test suite — 76 tests, 0 failures across all seven phases.
 
 ## Known Limitations
 
 Buzur is one layer of a defense-in-depth strategy. Current limitations:
 
 **Planned for future versions:**
-- Semantic similarity scoring for novel attack phrasing detection
 - MCP tool call output scanning (post-fetch content from email, CRM, calendar connectors)
 - Behavioral anomaly detection: flagging when agent activity deviates from baseline
 - Multi-step attack chain detection: sequences of benign actions that combine into harm
