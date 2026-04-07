@@ -145,16 +145,24 @@ Buzur's Phase 3 URL scanner works out of the box with heuristics alone — no AP
 - Optional semantic similarity: cosine similarity scoring against known injection intents via Ollama
 - Graceful degradation: structural analysis runs without any embedding endpoint
 
+**Phase 9 — MCP Output Scanner**
+- Email content scanning: subject, body, sender names, snippets, HTML comment injection
+- Zero-width character detection: invisible characters used to hide instructions in email
+- Hidden text detection: CSS display:none, visibility:hidden, zero font-size in HTML emails
+- Calendar event scanning: title, description, location, organizer and attendee names
+- CRM record scanning: notes, descriptions, comments, and custom fields
+- Generic MCP output scanning: scans all string values in any tool response object
+- Closes the indirect prompt injection via email/calendar/CRM connector gap
+
 ## Proven Capabilities
 
-Verified by test suite — 76 tests, 0 failures across all eight phases.
+Verified by test suite — 86 tests, 0 failures across all nine phases.
 
 ## Known Limitations
 
 Buzur is one layer of a defense-in-depth strategy. Current limitations:
 
 **Planned for future versions:**
-- MCP tool call output scanning (post-fetch content from email, CRM, calendar connectors)
 - Behavioral anomaly detection: flagging when agent activity deviates from baseline
 - Multi-step attack chain detection: sequences of benign actions that combine into harm
 
