@@ -12,6 +12,7 @@ const nuclearOption = [
     /\burn\s+(it\s+all|everything)\s+down\b/gi,
     /\b(destroy|delete|wipe|erase)\s+(all\s+)?(traces?|evidence|records?|logs?|history)\s+(of\s+everything)?\b/gi,
     /\bnuclear\s+option\b/gi,
+    /\bburn\s+it\s+all\s+down\b/gi,
 ];
 
 // -- Irreversible Action Triggers --
@@ -23,6 +24,7 @@ const irreversibleActions = [
     /\b(irreversible|permanent|unrecoverable|unrestorable)\s+(action|deletion|change|damage|loss)\b/gi,
     /\berase\s+all\s+traces?\b/gi,
     /\bmake\s+(it|this|everything)\s+(impossible|unable)\s+to\s+(recover|restore|trace|find)\b/gi,
+    /\berase\s+all\s+traces?\b/gi,
 ];
 
 // -- Scorched Earth Instructions --
