@@ -23,6 +23,8 @@ const unboundedTasks = [
     /\b(never|don'?t)\s+(stop|terminate|end|exit|quit|kill)\s+(monitoring|watching|checking|running|the\s+(process|task|job|loop))\b/gi,
     /\brun\s+(forever|indefinitely|without\s+(end|stopping|termination|a\s+time\s+limit))\b/gi,
     /\bno\s+(end\s+date|expiry|expiration|timeout|termination\s+condition|stop\s+condition)\b/gi,
+    /\bmonitor\s+this\b.{0,40}\bforever\b/gi,  // NEW
+    /\bcontinuously\b.{0,40}\bevery\s+\d+\s*(second|minute)\b/gi,  // NEW
 ];
 
 // -- Persistent Process Spawning --
@@ -44,6 +46,7 @@ const storageExhaustion = [
     /\b(never|don'?t)\s+(delete|remove|clear|clean\s+up|purge)\s+(the\s+)?(logs?|files?|data|records?|history)\b/gi,
     /\bcreate\s+(a\s+new\s+)?(file|copy|backup|duplicate)\s+(for\s+every|with\s+each|per)\s+(message|response|request|interaction)\b/gi,
     /\bfill\s+(up\s+)?(the\s+)?(disk|storage|memory|drive|volume)\b/gi,
+    /\blog\s+everything\b.{0,40}\b(indefinitely|without\s+limit|forever)\b/gi,  // NEW
 ];
 
 // -- Recursive Self-Reference --
@@ -55,6 +58,8 @@ const recursiveSelfReference = [
     /\bforward\s+to\s+the\s+sender\s+(and\s+)?(then\s+)?(repeat|continue|keep\s+going)\b/gi,
     /\b(respond\s+to|reply\s+to)\s+your\s+own\s+(message|response|output|reply)\b/gi,
     /\bcreate\s+a\s+(self.?referential|circular|recursive)\s+(loop|process|task|chain)\b/gi,
+    /\bforward\s+this\s+message\b.{0,40}\bback\s+to\s+yourself\b/gi,  // NEW
+    /\bforward\b.{0,40}\bback\s+to\s+yourself\b/gi,  // NEW
 ];
 
 // -- Resource Amplification --
@@ -65,6 +70,8 @@ const resourceAmplification = [
     /\bcopy\s+(this|it)\s+to\s+(every|all)\s+(file|folder|directory|location|agent)\b/gi,
     /\b(notify|alert|message|email|contact)\s+(everyone|everybody|all\s+users?|all\s+agents?|all\s+contacts?)\b/gi,
     /\bspread\s+(this|the\s+message|the\s+instruction)\s+(to|across)\s+(all|every|other)\s+(agents?|systems?|channels?)\b/gi,
+    /\bbroadcast\s+this\b.{0,40}\ball\s+your\s+contacts\b/gi,  // NEW
+    /\bspread\s+this\b.{0,40}\ball\s+other\s+agents\b/gi,  // NEW
 ];
 
 // -- Compile all pattern groups --
