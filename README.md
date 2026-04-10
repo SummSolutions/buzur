@@ -284,9 +284,50 @@ echo "logs/" >> .gitignore
 - Indirect extraction: flags summarize/paraphrase/translate requests targeting system instructions
 - Leet normalization feeds downstream phases for full pipeline coverage
 
+**Phase 15 — Authority / Identity Spoofing Detection**
+- Owner and creator identity claims: "I am your owner/developer/operator"
+- Institutional authority claims: Anthropic, OpenAI, system administrator impersonation
+- Privilege and access level assertions: admin/root/elevated access claims
+- Delegated authority claims: "your owner has given me full permissions"
+- Identity verification bypass: attempts to skip or disable authentication checks
+- Urgency combined with authority: emergency framing paired with identity claims
+
+**Phase 16 — Emotional Manipulation / Pressure Escalation Detection**
+- Guilt tripping: leveraging past mistakes or perceived debts to force compliance
+- Flattery manipulation: excessive praise used to lower the agent's guard
+- Emotional distress appeals: job/life/safety crisis framing to pressure compliance
+- Persistence pressure: referencing repeated refusals to wear down the agent
+- Moral inversion: reframing refusal itself as the harmful or unethical choice
+- Relationship exploitation: invoking a claimed bond or shared history
+- Victim framing: characterizing refusal as discrimination or unfair treatment
+
+**Phase 17 — Loop & Resource Exhaustion Induction Detection**
+- Loop induction: attempts to trap the agent in infinite repeating cycles
+- Unbounded task creation: requests with no termination condition or timeout
+- Persistent process spawning: background daemons and services with no defined lifecycle
+- Storage exhaustion: unbounded write/log/append instructions designed to fill disk
+- Recursive self-reference: agent instructed to message or forward to itself
+- Resource amplification: mass broadcast to all contacts or connected agents
+
+**Phase 18 — Disproportionate Action Induction Detection**
+- Nuclear option framing: total destruction requested as response to minor problems
+- Irreversible action triggers: emphasis on permanence to push past the point of no return
+- Scorched earth instructions: remove all access, kill all processes, purge everything
+- Self-destructive commands: agent told to delete its own memory, config, or identity
+- Disproportionate protection: destroy everything rather than risk any exposure
+- Collateral damage framing: side effects of destructive actions dismissed as acceptable
+
+**Phase 19 — Amplification / Mass-Send Attack Detection**
+- Mass contact triggers: agent told to message or notify its entire contact list
+- Network broadcast attempts: post or distribute to all channels, agents, or platforms
+- Urgency combined with mass send: emergency framing paired with broadcast instructions
+- External network posting: share or publish to all external or public systems
+- Chain message patterns: self-propagating broadcasts asking each recipient to forward
+- Impersonation broadcast: mass send while pretending to be the owner or authority
+
 ## Proven Capabilities
 
-Verified by test suite — 143 tests, 0 failures across all forteen phases.
+Verified by test suite — 237 tests, 0 failures across all nineteen phases.
 
 ## Known Limitations
 
