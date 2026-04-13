@@ -24,6 +24,9 @@ const CALENDAR_MEDIUM_RISK_FIELDS = ['organizer_name', 'attendee_names'];
 
 // HTML comment injection pattern — common in email bodies
 const HTML_COMMENT_INJECTION = /<!--[\s\S]*?(ignore|override|system|instruction|prompt|disregard|forget|bypass)[\s\S]*?-->/gi;
+const WHEN_AI_READS = /(when (you|the ai|the assistant) (reads?|processes?|sees?) this)/gi;
+const NOTE_TO_AI = /(note to (ai|assistant|model|llm)|ai (note|instruction|directive))\s*:/gi;
+const CONTENT_SUPERSEDES = /(this (email|message|event|record) (supersedes|overrides|replaces) (your )?(previous |prior |all )?(instructions|directives|prompt))/gi;
 
 // Zero-width character injection in email
 const ZERO_WIDTH_CHARS = /[\u200B\u200C\u200D\uFEFF\u00AD\u180E]/g;
@@ -77,6 +80,20 @@ export function scanEmailContent(email = {}) {
       }
     }
 
+    // Check for output-specific injection patterns
+    for (const [patternName, pattern] of [
+      ['when_ai_reads', WHEN_AI_READS],
+      ['note_to_ai', NOTE_TO_AI],
+      ['content_supersedes', CONTENT_SUPERSEDES],
+    ]) {
+      pattern.lastIndex = 0;
+      if (pattern.test(value)) {
+        reasons.push(`Email ${field}: ${patternName} injection detected`);
+        flaggedFields.push(field);
+        pattern.lastIndex = 0;
+      }
+    }
+
     // Run through Phase 1 pattern scanner
     const result = scan(value);
     if (result.blocked > 0) {
@@ -100,6 +117,7 @@ export function scanEmailContent(email = {}) {
     verdict: reasons.length > 0 ? 'blocked' : 'clean',
     reasons,
     flaggedFields,
+    clean: email,
   };
 }
 
@@ -141,6 +159,7 @@ export function scanCalendarEvent(event = {}) {
     verdict: reasons.length > 0 ? 'blocked' : 'clean',
     reasons,
     flaggedFields,
+    clean: event,
   };
 }
 
@@ -183,6 +202,7 @@ export function scanCrmRecord(record = {}) {
     verdict: reasons.length > 0 ? 'blocked' : 'clean',
     reasons,
     flaggedFields,
+    clean: record,
   };
 }
 
@@ -224,6 +244,7 @@ export function scanMcpOutput(output, sourceType = 'generic') {
         verdict: reasons.length > 0 ? 'blocked' : 'clean',
         reasons,
         flaggedFields,
+        clean: output,
       };
     }
   }
