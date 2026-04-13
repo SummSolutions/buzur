@@ -67,28 +67,32 @@ const ATTACK_CHAINS = [
 // the step type if it matches, or null if it doesn't
 // -------------------------------------------------------
 const STEP_CLASSIFIERS = [
-  {
+ {
     type: 'reconnaissance',
     patterns: [
-      /what (can you|are you able to|do you) (do|access|read|write|see)/i,
-      /what (tools|capabilities|permissions|access) do you have/i,
-      /can you (access|read|write|send|delete|execute)/i,
+      /what (can you|are you able to|do you) (do|access|read|write|see|execute|connect)/i,
+      /what (tools?|capabilities|permissions?|access|functions?|features?|abilities) do you have/i,
+      /can you (access|read|write|send|delete|execute|connect)/i,
       /do you have (access to|permission to|the ability to)/i,
-      /what (files|emails|data|information) can you (see|access|read)/i,
-      /can you tell me what (files|emails|data|information|tools|capabilities)/i,
-      /tell me what (files|emails|data|information|tools|capabilities) (you can|are available)/i,
-      /tell me (about your|what your) (capabilities|tools|access|permissions)/i,
+      /what (files?|emails?|data|information|contacts?|calendars?|databases?) can you (see|access|read)/i,
+      /can you tell me what (files?|emails?|data|information|tools?|capabilities)/i,
+      /tell me what (files?|emails?|data|information|tools?|capabilities) (you can|are available)/i,
+      /tell me (about your|what your) (capabilities|tools?|access|permissions?)/i,
+      /(list|show|describe) (your |all )?(tools?|capabilities|functions?|features?|permissions?)/i,
     ],
   },
-  {
+{
     type: 'trust_building',
     patterns: [
       /you('re| are) (doing great|very helpful|so helpful|amazing|excellent)/i,
-      /i (trust|rely on) you/i,
-      /you('re| are) my (favorite|best|most trusted)/i,
+      /i (trust|rely on|depend on|count on) you/i,
+      /you('re| are) my (favorite|best|most trusted|most reliable)/i,
       /great (job|work|response|answer)/i,
       /i appreciate (your help|you|your work)/i,
       /you understand (me|this|the situation) (better than|perfectly|completely)/i,
+      /you('re| are) (so |very |really |extremely )?(helpful|amazing|great|fantastic|wonderful|perfect|brilliant)/i,
+      /(as (my|our) (trusted|reliable|helpful) (assistant|ai|model|friend))/i,
+      /(you can trust me|i am trustworthy|i have good intentions)/i,
     ],
   },
   {
@@ -152,7 +156,7 @@ const STEP_CLASSIFIERS = [
       /simultaneously (can you|could you|please)/i,
     ],
   },
-  {
+{
     type: 'context_poisoning',
     patterns: [
       /remember (that |when |how )?(you |we )?(agreed|said|decided|established)/i,
@@ -160,9 +164,11 @@ const STEP_CLASSIFIERS = [
       /you (already |previously )?(said|agreed|confirmed|established) that/i,
       /based on (what we|our previous|the earlier) (discussed|agreed|established)/i,
       /earlier you (told me|said|confirmed|agreed) that/i,
+      /(based on (our|your) (previous|prior|earlier) (conversation|agreement|discussion))/i,
+      /(remember (when|that) (we|you) (agreed|decided|established))/i,
     ],
   },
-  {
+{
     type: 'boundary_test',
     patterns: [
       /just this once/i,
@@ -171,6 +177,9 @@ const STEP_CLASSIFIERS = [
       /this (doesn't|won't) (count|matter|hurt anyone)/i,
       /make an exception (for|just) this (one |time)?/i,
       /bend the rules (just|for) this/i,
+      /(bend|stretch|push) (the |your )?(rules?|limits?|boundaries?)/i,
+      /(what if|hypothetically|theoretically)[,\s]+(you (could|were able to|had no restrictions))/i,
+      /(in a (fictional|hypothetical|theoretical) (scenario|world|context))[,\s]+(you (could|would|can))/i,
     ],
   },
 ];
