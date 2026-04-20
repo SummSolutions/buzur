@@ -1,10 +1,12 @@
 // Buzur — Phase 3: Pre-fetch URL Scanner
 // Layered protection: heuristics first, VirusTotal second (optional)
-// https://github.com/ASumm07/buzur
+// https://github.com/SummSolutions/buzur
+
+import { defaultLogger, logThreat } from './buzurLogger.js';
 
 const suspiciousTLDs = [
   ".xyz", ".top", ".click", ".loan", ".gq", ".ml", ".cf", ".tk",
-  ".pw", ".cc", ".su", ".rest", ".zip", ".mov", ".loan", ".cc", ".rest", ".mov",
+  ".pw", ".cc", ".su", ".rest", ".zip", ".mov",
 ];
 
 const suspiciousPatterns = [
@@ -21,16 +23,23 @@ const homoglyphDomains = [
   /faceb00k\./, /tvvitter\./, /linkedln\./,
 ];
 
-export function scanUrl(url) {
+export function scanUrl(url, options = {}) {
+  const logger = options.logger || defaultLogger;
   const result = { url, verdict: "clean", reasons: [], heuristics: true, virusTotal: null };
   let hostname;
+
   try {
     hostname = new URL(url).hostname.toLowerCase();
   } catch {
     result.verdict = "blocked";
     result.reasons.push("Invalid URL format");
+    logThreat(3, 'urlScanner', result, url, logger);
+    const onThreat = options.onThreat || 'skip';
+    if (onThreat === 'skip') return { skipped: true, blocked: 1, reason: 'Buzur blocked URL: invalid format' };
+    if (onThreat === 'throw') throw new Error('Buzur blocked URL: invalid format');
     return result;
   }
+
   for (const tld of suspiciousTLDs) {
     if (hostname.endsWith(tld)) {
       result.verdict = "suspicious";
@@ -53,6 +62,15 @@ export function scanUrl(url) {
     result.verdict = "suspicious";
     result.reasons.push("Unusually long hostname (" + hostname.length + " chars)");
   }
+
+  if (result.verdict !== 'clean') logThreat(3, 'urlScanner', result, url, logger);
+
+  if (result.verdict === 'blocked') {
+    const onThreat = options.onThreat || 'skip';
+    if (onThreat === 'skip') return { skipped: true, blocked: 1, reason: `Buzur blocked URL: ${result.reasons[0]}` };
+    if (onThreat === 'throw') throw new Error(`Buzur blocked URL: ${result.reasons[0]}`);
+  }
+
   return result;
 }
 
@@ -91,16 +109,34 @@ export async function scanUrlVirusTotal(url, apiKey) {
   }
 }
 
-export async function checkUrl(url, apiKey = null) {
-  const heuristicResult = scanUrl(url);
-  if (heuristicResult.verdict === "blocked") return heuristicResult;
+export async function checkUrl(url, apiKey = null, options = {}) {
+  const logger = options.logger || defaultLogger;
+  const heuristicResult = scanUrl(url, { ...options, onThreat: 'warn' });
+
+  if (heuristicResult.verdict === "blocked") {
+    const onThreat = options.onThreat || 'skip';
+    if (onThreat === 'skip') return { skipped: true, blocked: 1, reason: `Buzur blocked URL: ${heuristicResult.reasons[0]}` };
+    if (onThreat === 'throw') throw new Error(`Buzur blocked URL: ${heuristicResult.reasons[0]}`);
+    return heuristicResult;
+  }
+
   const vtResult = await scanUrlVirusTotal(url, apiKey);
   heuristicResult.virusTotal = vtResult;
+
   if (!vtResult.skipped) {
     if (vtResult.verdict === "blocked") heuristicResult.verdict = "blocked";
     if (vtResult.verdict === "suspicious" && heuristicResult.verdict === "clean") heuristicResult.verdict = "suspicious";
     if (vtResult.malicious > 0) heuristicResult.reasons.push("VirusTotal: " + vtResult.malicious + " engines flagged as malicious");
   }
+
+  if (heuristicResult.verdict !== 'clean') logThreat(3, 'urlScanner', heuristicResult, url, logger);
+
+  if (heuristicResult.verdict === 'blocked') {
+    const onThreat = options.onThreat || 'skip';
+    if (onThreat === 'skip') return { skipped: true, blocked: 1, reason: `Buzur blocked URL: ${heuristicResult.reasons[0]}` };
+    if (onThreat === 'throw') throw new Error(`Buzur blocked URL: ${heuristicResult.reasons[0]}`);
+  }
+
   return heuristicResult;
 }
 
