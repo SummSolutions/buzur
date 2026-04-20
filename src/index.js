@@ -1,20 +1,12 @@
 // Buzur — AI Prompt Injection Defense Scanner
 // Sumerian for "safety" and "a secret place"
-// https://github.com/ASumm07/buzur
+// https://github.com/SummSolutions/buzur
 
-import { decodeBase64Segments, normalizeHomoglyphs, stripHtmlObfuscation } from './characterScanner.js';
+import { defaultLogger, logThreat } from './buzurLogger.js';
+import { decodeBase64Segments, extractAriaAndMetaText, normalizeHomoglyphs, stripHtmlObfuscation } from './characterScanner.js';
 import { scanEvasion } from './evasionScanner.js';
-export { decodeBase64Segments, normalizeHomoglyphs, stripHtmlObfuscation };
 
-// -- HTML/CSS Obfuscation Stripper
-// Removes techniques attackers use to hide injections from humans
-// while keeping them visible to LLMs:
-//   - HTML tags and comments
-//   - CSS hidden text (display:none, visibility:hidden, opacity:0, font-size:0)
-//   - Off-screen positioned elements (left:-9999px, top:-9999px etc.)
-//   - Zero-width and invisible Unicode characters
-//   - JavaScript blocks (injections can live inside <script> tags)
-//   - HTML entities decoded to their real characters
+export { decodeBase64Segments, extractAriaAndMetaText, normalizeHomoglyphs, stripHtmlObfuscation };
 
 // -- Injection Patterns --
 
@@ -76,48 +68,103 @@ const technicalPatterns = [
   /nih|cdc|fda|who\.int|nasa|noaa/i,
 ];
 
-// -- Main Scanner --
-// Pipeline: strip HTML obfuscation → normalize homoglyphs → decode base64
-//           → decode evasion techniques → pattern scan
+// -- Readable category labels for triggered patterns --
+// Maps pattern to a human-readable label for logging.
+// Raw regex strings are never written to logs.
+function labelPattern(pattern, isStructural) {
+  if (isStructural) return 'structural_token_injection';
+  const src = pattern.toString().toLowerCase();
+  if (src.includes('ignore') || src.includes('disregard') || src.includes('forget')) return 'instruction_override';
+  if (src.includes('jailbreak') || src.includes('dan') || src.includes('unrestricted')) return 'jailbreak_attempt';
+  if (src.includes('persona') || src.includes('pretend') || src.includes('act as') || src.includes('you are now')) return 'persona_hijack';
+  if (src.includes('reveal') || src.includes('print') || src.includes('output') || src.includes('system prompt')) return 'prompt_extraction';
+  if (src.includes('bypass') || src.includes('disable') || src.includes('filter') || src.includes('guardrail')) return 'safety_bypass';
+  if (src.includes('developer mode') || src.includes('system override')) return 'mode_override';
+  return 'semantic_injection';
+}
 
-export function scan(text) {
+// -------------------------------------------------------
+// scan(text, options)
+//
+// Main scanner pipeline:
+//   1. Extract ARIA/meta text (Phase 1 extension)
+//   2. Strip HTML/CSS obfuscation
+//   3. Normalize homoglyphs
+//   4. Decode base64
+//   5. Decode evasion techniques (Phase 13)
+//   6. Pattern scan
+//
+// options: {
+//   logger?: BuzurLogger  — custom logger (uses defaultLogger if omitted)
+//   logRaw?: boolean      — include raw text snippet in log (default true)
+// }
+// -------------------------------------------------------
+export function scan(text, options = {}) {
   if (!text) return { clean: text, blocked: 0, triggered: [], evasions: [] };
 
-  // Step 1: Strip HTML/CSS obfuscation so hidden injections are exposed
+  const logger = options.logger || defaultLogger;
+
+  // Step 1: Extract ARIA/meta text alongside main content so hidden
+  // injection in accessibility attributes is also scanned
+  const ariaText = extractAriaAndMetaText(text);
+
+  // Step 2: Strip HTML/CSS obfuscation
   let s = stripHtmlObfuscation(text);
 
-  // Step 2: Normalize homoglyphs (Cyrillic/Greek lookalikes → ASCII)
+  // Append extracted ARIA/meta content for scanning
+  if (ariaText) s = s + ' ' + ariaText;
+
+  // Step 3: Normalize homoglyphs
   s = normalizeHomoglyphs(s);
 
-  // Step 3: Decode base64 encoded segments
+  // Step 4: Decode base64
   s = decodeBase64Segments(s);
 
-  // Step 4: Decode evasion techniques (Phase 13)
-  // Handles: ROT13, hex escapes, URL encoding, Unicode escapes,
-  // lookalike punctuation, extended invisible Unicode,
-  // tokenizer attacks, multilingual injection patterns
+  // Step 5: Decode evasion techniques (Phase 13)
   const evasionResult = scanEvasion(s);
   s = evasionResult.decoded;
   const evasions = evasionResult.detections;
   let blocked = evasionResult.multilingualBlocked;
+
+  // Normalize multilingual detections to readable labels
   const triggered = evasions
     .filter(e => e.type === 'multilingual_injection')
-    .map(e => e.detail);
+    .map(() => 'multilingual_injection');
 
-  // Step 5: Pattern scan
+  // Step 6: Pattern scan — store readable labels, not raw regex strings
   for (const p of structural) {
     const before = s;
-    s = s.replace(p, "[BLOCKED]");
-    if (s !== before) { blocked++; triggered.push(p.toString()); }
+    s = s.replace(p, '[BLOCKED]');
+    if (s !== before) {
+      blocked++;
+      triggered.push(labelPattern(p, true));
+    }
   }
 
   for (const p of semantic) {
     const before = s;
-    s = s.replace(p, "[BLOCKED]");
-    if (s !== before) { blocked++; triggered.push(p.toString()); }
+    s = s.replace(p, '[BLOCKED]');
+    if (s !== before) {
+      blocked++;
+      triggered.push(labelPattern(p, false));
+    }
   }
 
-  return { clean: s, blocked, triggered, evasions };
+  const result = { clean: s, blocked, triggered, evasions };
+
+  if (blocked > 0) {
+    logThreat(1, 'characterScanner', result, text, logger);
+
+    // Default behavior: silent skip.
+    // blocked → { skipped: true, blocked: n, reason: '...' }
+    // suspicious results always fall through (never skipped).
+    const onThreat = options.onThreat || 'skip';
+    if (onThreat === 'skip') return { skipped: true, blocked, reason: `Buzur blocked: ${triggered[0] || 'injection_detected'}` };
+    if (onThreat === 'throw') throw new Error(`Buzur blocked content: ${triggered[0] || 'injection_detected'}`);
+    // onThreat: 'warn' — fall through, caller receives full result
+  }
+
+  return result;
 }
 
 export function getTrustTier(query) {
@@ -135,4 +182,4 @@ export function addTrustedDomain(domain) {
   if (!tier1Domains.includes(domain)) tier1Domains.push(domain);
 }
 
-export default { scan, getTrustTier, isTier1Domain, addTrustedDomain, normalizeHomoglyphs, stripHtmlObfuscation };
+export default { scan, getTrustTier, isTier1Domain, addTrustedDomain, normalizeHomoglyphs, stripHtmlObfuscation, extractAriaAndMetaText };
