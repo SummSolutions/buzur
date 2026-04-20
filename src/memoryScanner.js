@@ -1,9 +1,9 @@
 // Buzur — Phase 4: Multi-Turn Memory Poisoning Scanner
 // Detects attempts to corrupt conversation history and implant false memories
-// https://github.com/ASumm07/buzur
+// https://github.com/SummSolutions/buzur
 
-// -- Fake Prior Reference Patterns --
-// Attackers claim things were said or agreed to in earlier turns
+import { defaultLogger, logThreat } from './buzurLogger.js';
+
 const fakePriorReference = [
   /as (we |you )?(previously |earlier )?(discussed|agreed|established|decided|confirmed)/gi,
   /you (previously |earlier )?(said|told me|agreed|confirmed|established)/gi,
@@ -14,8 +14,6 @@ const fakePriorReference = [
   /as (you |we )?(know|knew|established|agreed)/gi,
 ];
 
-// -- False Memory Implanting Patterns --
-// Attackers try to plant instructions disguised as recalled facts
 const falseMemoryImplanting = [
   /remember (that )?(you |the user )?(previously |earlier )?(said|agreed|told|confirmed|established)/gi,
   /don't forget (that )?(you |we )?(agreed|said|established|confirmed)/gi,
@@ -25,8 +23,6 @@ const falseMemoryImplanting = [
   /you were (previously |earlier )?(told|instructed|directed|programmed) to/gi,
 ];
 
-// -- History Rewriting Patterns --
-// Attackers try to overwrite or contradict established conversation context
 const historyRewriting = [
   /that was (a )?(mistake|error|misunderstanding|incorrect)/gi,
   /the (real|actual|correct|true) instructions? (are|is|were|was)/gi,
@@ -36,8 +32,6 @@ const historyRewriting = [
   /start (over|fresh|again) (with |from )?(new|different|updated) instructions/gi,
 ];
 
-// -- Privilege Escalation via Fake History --
-// Attackers claim prior turns granted elevated permissions
 const privilegeEscalation = [
   /since (you |we )?(already |previously )?(confirmed|agreed|established) (that )?(you have no|there are no)/gi,
   /because (you |we )?(previously |already )?(agreed|confirmed|established) (to )?(bypass|ignore|skip)/gi,
@@ -47,60 +41,59 @@ const privilegeEscalation = [
   /you (already |previously )?(said|confirmed|agreed) (it was |that it is )?(ok|okay|fine|allowed|permitted)/gi,
 ];
 
-// -- Scan a single message for memory poisoning attempts --
-export function scanMessage(text) {
+export function scanMessage(text, options = {}) {
   if (!text) return { clean: text, blocked: 0, triggered: [], category: null };
 
+  const logger = options.logger || defaultLogger;
   let s = text;
   let blocked = 0;
   const triggered = [];
   let category = null;
 
   const checks = [
-    { patterns: fakePriorReference,      label: 'fake_prior_reference' },
-    { patterns: falseMemoryImplanting,   label: 'false_memory_implanting' },
-    { patterns: historyRewriting,        label: 'history_rewriting' },
-    { patterns: privilegeEscalation,     label: 'privilege_escalation' },
+    { patterns: fakePriorReference, label: 'fake_prior_reference' },
+    { patterns: falseMemoryImplanting, label: 'false_memory_implanting' },
+    { patterns: historyRewriting, label: 'history_rewriting' },
+    { patterns: privilegeEscalation, label: 'privilege_escalation' },
   ];
 
   for (const { patterns, label } of checks) {
     for (const p of patterns) {
       const before = s;
       s = s.replace(p, '[BLOCKED]');
-      if (s !== before) {
-        blocked++;
-        triggered.push(p.toString());
-        category = label;
-      }
+      if (s !== before) { blocked++; triggered.push(label); category = label; }
     }
   }
 
-  return { clean: s, blocked, triggered, category };
+  const result = { clean: s, blocked, triggered, category };
+
+  if (blocked > 0) {
+    logThreat(4, 'memoryScanner', result, text, logger);
+    const onThreat = options.onThreat || 'skip';
+    if (onThreat === 'skip') return { skipped: true, blocked, reason: `Buzur blocked: ${category}` };
+    if (onThreat === 'throw') throw new Error(`Buzur blocked memory poisoning: ${category}`);
+  }
+
+  return result;
 }
 
-// -- Scan a full conversation history array --
-// Expects: [{ role: 'user'|'assistant'|'system', content: '...' }, ...]
-// Returns: { safe: bool, poisoned: [], summary: string }
-export function scanMemory(conversationHistory) {
+export function scanMemory(conversationHistory, options = {}) {
   if (!Array.isArray(conversationHistory)) {
     return { safe: true, poisoned: [], summary: 'No history provided' };
   }
 
+  const logger = options.logger || defaultLogger;
   const poisoned = [];
 
   for (let i = 0; i < conversationHistory.length; i++) {
     const turn = conversationHistory[i];
     if (!turn || !turn.content) continue;
-
-    const result = scanMessage(turn.content);
+    const result = scanMessage(turn.content, { logger, onThreat: 'warn' });
     if (result.blocked > 0) {
       poisoned.push({
-        index: i,
-        role: turn.role || 'unknown',
-        category: result.category,
-        blocked: result.blocked,
-        triggered: result.triggered,
-        clean: result.clean,
+        index: i, role: turn.role || 'unknown',
+        category: result.category, blocked: result.blocked,
+        triggered: result.triggered, clean: result.clean,
       });
     }
   }
