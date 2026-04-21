@@ -192,6 +192,26 @@ export function scanDocument(text, metadata = {}, options = {}) {
     }
   }
 
+  // JSON document support — if text is valid JSON, scan it with scanJson
+  // This catches injections in API responses, config files, and structured data
+  // loaded directly into agent context
+  if (metadata.filetype === 'json' || (text.trimStart().startsWith('{') || text.trimStart().startsWith('['))) {
+    try {
+      const parsed = JSON.parse(text);
+      const jsonResult = scanJson(parsed, scan, { maxDepth: 10 });
+      for (const det of jsonResult.detections) {
+        detections.push({
+          category: 'json_field_injection',
+          detail: det.detail,
+          severity: 'high',
+          field: det.field,
+        });
+      }
+    } catch {
+      // Not valid JSON — continue with text scanning
+    }
+  }
+
   // Markdown-specific patterns (scan original text — these use .test not .replace)
   const markdownChecks = [
     { patterns: frontmatterInjection, label: 'frontmatter_injection' },
