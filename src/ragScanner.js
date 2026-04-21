@@ -8,6 +8,8 @@
 // https://github.com/SummSolutions/buzur
 
 import { defaultLogger, logThreat } from './buzurLogger.js';
+import { scanJson } from './characterScanner.js';
+import { scan } from './index.js';
 
 // -- AI-Targeted Metadata Patterns --
 const aiTargetedMetadata = [

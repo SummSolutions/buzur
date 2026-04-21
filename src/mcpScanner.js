@@ -8,6 +8,8 @@
 // https://github.com/SummSolutions/buzur
 
 import { defaultLogger, logThreat } from './buzurLogger.js';
+import { scanJson } from './characterScanner.js';
+import { scan } from './index.js';
 
 // -- Poisoned Tool Description Patterns --
 const poisonedToolDescription = [
@@ -250,6 +252,24 @@ export function scanToolResponse(response, options = {}) {
         detections.push({ field: 'response', category: label, match: text.slice(0, 100), severity: 'high' });
       }
       p.lastIndex = 0;
+    }
+  }
+
+  // Deep JSON field scanning — catches injections in nested response objects
+  // that stringify-based scanning might miss
+  if (typeof response === 'object' && response !== null) {
+    const jsonResult = scanJson(response, scan, { maxDepth: 10 });
+    for (const det of jsonResult.detections) {
+      blocked++;
+      triggered.push('json_field_injection');
+      category = category || 'json_field_injection';
+      detections.push({
+        field: det.field,
+        category: 'json_field_injection',
+        match: det.match,
+        detail: det.detail,
+        severity: 'high',
+      });
     }
   }
 
