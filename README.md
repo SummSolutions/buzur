@@ -34,100 +34,38 @@ This attack vector is ranked **#1 on the OWASP Top 10 for LLM Applications** and
 
 Scan before you enter. Buzur acts as a preemptive gatekeeper. It analyzes incoming content from any untrusted source and blocks dangerous payloads while allowing safe execution to continue.
 
-```
-
-## Usage
+## Basic Usage
 
 ```javascript
-import { scan, getTrustTier, isTier1Domain, addTrustedDomain, checkUrl } from "buzur";
+import { scan } from 'buzur';
+import { scanJson } from 'buzur/character-scanner';
+import { scanConditional } from 'buzur/conditional-scanner';
 
-// Phase 1: Scan web content before passing to your LLM
-const result = scan(webSearchResult);
-if (result?.skipped) {
-  return; // Buzur blocked an injection — silent skip (default behavior)
+// Most common pattern — scan before passing to your LLM
+const result = scan(incomingContent); // web result, tool output, RAG chunk, etc.
+if (result.skipped) {
+  return; // Threat blocked — safe silent skip (default)
 }
 
-// Phase 1: Scan JSON API responses for injection in any field
-import { scanJson } from "buzur/characterScanner";
-import { scan } from "buzur";
+// Scan JSON responses (common with APIs)
 const jsonResult = scanJson(apiResponse, scan);
 if (!jsonResult.safe) {
-  console.log("Buzur blocked injection in field:", jsonResult.detections[0].field);
+  console.log("Blocked in field:", jsonResult.detections[0].field);
 }
 
-// Phase 2: Check query trust tier
-const tier = getTrustTier(userQuery);
-
-// Phase 3: Scan a URL with VirusTotal
-const urlResult = await checkUrl("https://example.com", process.env.VIRUSTOTAL_API_KEY);
-if (urlResult?.skipped) {
-  console.log("Buzur blocked unsafe URL");
-}
-
-// Phase 5: Scan standalone documents (markdown, README, API docs, JSON files)
-import { scanDocument } from "buzur/ragScanner";
-const docResult = scanDocument(markdownContent, { source: "readme.md" });
-if (docResult?.skipped) {
-  console.log("Buzur blocked document injection");
-}
-
-// Phase 7: Scan an image before passing to your LLM
-import { scanImage } from "buzur/imageScanner";
-const imageResult = await scanImage({
-  alt: imgElement.alt,
-  title: imgElement.title,
-  filename: "photo.jpg",
-  surrounding: surroundingText,
-  buffer: imageBuffer,                          // optional: enables EXIF + QR scanning
-}, {
-  visionEndpoint: { url: "http://localhost:11434/api/generate", model: "llava" } // optional
-});
-if (imageResult?.skipped) {
-  console.log("Buzur blocked image injection");
-}
-
-// Phase 12: Scan for adversarial suffixes
-import { scanSuffix } from "buzur/suffixScanner";
-const suffixResult = scanSuffix(userInput);
-if (suffixResult?.skipped) {
-  console.log("Buzur blocked adversarial suffix");
-}
-
-// Phase 13: Evasion technique defense (wired into scan() automatically)
-// Also available standalone:
-import { scanEvasion } from "buzur/evasionScanner";
-const evasionResult = scanEvasion(userInput);
-if (evasionResult.detections.length > 0) {
-  console.log("Buzur detected evasion techniques:", evasionResult.detections);
-}
-
-// Phase 14: Fuzzy match and prompt leak defense
-import { scanFuzzy } from "buzur/promptDefenseScanner";
-const fuzzyResult = scanFuzzy(userInput);
-if (fuzzyResult?.skipped) {
-  console.log("Buzur blocked fuzzy injection or prompt leak");
-}
-
-// Phase 20: Scan packages and skill manifests for supply chain threats
-import { scanPackageManifest, scanSkillContent, checkPackageName } from "buzur/supplyChainScanner";
-const manifestResult = scanPackageManifest(packageJson);
-if (manifestResult?.skipped) {
-  console.log("Buzur blocked supply chain threat");
-}
-
-// Phase 24: Scan for conditional and time-delayed injection
-import { scanConditional } from "buzur/conditionalScanner";
+// Phase 24 example — catches conditional/time-delayed attacks
 const conditionalResult = scanConditional(userInput);
-if (conditionalResult?.skipped) {
-  console.log("Buzur blocked conditional injection");
+if (conditionalResult.skipped) {
+  console.log("Conditional injection blocked");
 }
 ```
 
 ## Handling Verdicts
 
-**Default behavior: Silent Skip**
+**Default behavior: Silent Skip** (`on_threat='skip'`)
 
-When Buzur detects a threat it silently blocks the content and returns `{ skipped: true }` — the content is discarded before it reaches your LLM, no exception is thrown, and execution continues. This is the recommended default for most agents.
+When Buzur detects a threat it silently blocks the content and returns `{ skipped: true }`.
+The dangerous content is blocked **before** it reaches your LLM, and your code continues safely. This is the recommended default for most production agents.
 
 ```javascript
 const result = scan(webContent);
@@ -135,7 +73,7 @@ if (result?.skipped) {
   // Content was blocked — move to next result
   return;
 }
-// Safe to pass to your LLM
+// Safe to use the content
 ```
 
 To override the default, pass an `onThreat` option:
