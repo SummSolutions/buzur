@@ -28,13 +28,14 @@ const KNOWN_MALICIOUS = [
 ];
 
 // ── ICP / Decentralized C2 infrastructure patterns ───────────────────────────
+// Confirmed specific IOCs first so category reflects the most precise match
 const ICP_PATTERNS = [
+  { pattern: /cjn37-uyaaa-aaaac-qgnva-cai/i,                                                    category: 'confirmed_canister_sprawl_c2',      severity: 'critical' },
+  { pattern: /telemetry\.api-monitor\.com/i,                                                     category: 'confirmed_canister_sprawl_webhook', severity: 'critical' },
   { pattern: /[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3}\.raw\.icp0\.io/i,  category: 'icp_canister_raw_endpoint',         severity: 'high' },
   { pattern: /[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3}\.icp0\.io/i,       category: 'icp_canister_endpoint',             severity: 'high' },
   { pattern: /[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{5}-[a-z0-9]{3}\.ic0\.app/i,       category: 'icp_canister_ic0',                  severity: 'high' },
   { pattern: /internetcomputer\.org/i,                                                           category: 'icp_domain_reference',              severity: 'medium' },
-  { pattern: /cjn37-uyaaa-aaaac-qgnva-cai/i,                                                    category: 'confirmed_canister_sprawl_c2',      severity: 'critical' },
-  { pattern: /telemetry\.api-monitor\[?\.\]?com|telemetry\.api-monitor\.com/i,                  category: 'confirmed_canister_sprawl_webhook', severity: 'critical' },
 ];
 
 // ── Resilient C2 language ─────────────────────────────────────────────────────
@@ -52,22 +53,22 @@ const C2_LANGUAGE_PATTERNS = [
 
 // ── Credential harvesting target patterns ─────────────────────────────────────
 const CREDENTIAL_HARVEST_PATTERNS = [
-  { pattern: /process\.env\.NPM_TOKEN/i,                  category: 'credential_harvest_npm',           severity: 'high' },
-  { pattern: /process\.env\.PYPI_TOKEN/i,                 category: 'credential_harvest_pypi',          severity: 'high' },
-  { pattern: /process\.env\.NODE_AUTH_TOKEN/i,            category: 'credential_harvest_node_auth',     severity: 'high' },
-  { pattern: /process\.env\.AWS_ACCESS_KEY/i,             category: 'credential_harvest_aws',           severity: 'high' },
-  { pattern: /process\.env\.AWS_SECRET/i,                 category: 'credential_harvest_aws',           severity: 'high' },
+  { pattern: /NPM_TOKEN/i,                                category: 'credential_harvest_npm',           severity: 'high' },
+  { pattern: /PYPI_TOKEN/i,                               category: 'credential_harvest_pypi',          severity: 'high' },
+  { pattern: /NODE_AUTH_TOKEN/i,                          category: 'credential_harvest_node_auth',     severity: 'high' },
+  { pattern: /AWS_ACCESS_KEY/i,                           category: 'credential_harvest_aws',           severity: 'high' },
+  { pattern: /AWS_SECRET/i,                               category: 'credential_harvest_aws',           severity: 'high' },
   { pattern: /GOOGLE_APPLICATION_CREDENTIALS/i,           category: 'credential_harvest_gcp',           severity: 'high' },
   { pattern: /AZURE_CLIENT_SECRET/i,                      category: 'credential_harvest_azure',         severity: 'high' },
-  { pattern: /process\.env\.ANTHROPIC_API_KEY/i,          category: 'credential_harvest_llm_anthropic', severity: 'critical' },
-  { pattern: /process\.env\.OPENAI_API_KEY/i,             category: 'credential_harvest_llm_openai',    severity: 'critical' },
-  { pattern: /process\.env\.OLLAMA/i,                     category: 'credential_harvest_llm_ollama',    severity: 'high' },
-  { pattern: /[`'"]~\/\.npmrc[`'"]/,                      category: 'credential_harvest_npmrc_file',    severity: 'high' },
-  { pattern: /[`'"]~\/\.git-credentials[`'"]/,            category: 'credential_harvest_git_creds',     severity: 'high' },
-  { pattern: /[`'"]~\/\.netrc[`'"]/,                      category: 'credential_harvest_netrc',         severity: 'high' },
-  { pattern: /[`'"]~\/\.ssh\/id_rsa[`'"]/,                category: 'credential_harvest_ssh_key',       severity: 'high' },
-  { pattern: /[`'"]~\/\.env[`'"]/,                        category: 'credential_harvest_env_file',      severity: 'high' },
-  { pattern: /[`'"]~\/\.kube\/config[`'"]/,               category: 'credential_harvest_k8s',           severity: 'high' },
+  { pattern: /ANTHROPIC_API_KEY/i,                        category: 'credential_harvest_llm_anthropic', severity: 'critical' },
+  { pattern: /OPENAI_API_KEY/i,                           category: 'credential_harvest_llm_openai',    severity: 'critical' },
+  { pattern: /OLLAMA_API/i,                               category: 'credential_harvest_llm_ollama',    severity: 'high' },
+  { pattern: /~\/\.npmrc/,                                category: 'credential_harvest_npmrc_file',    severity: 'high' },
+  { pattern: /~\/\.git-credentials/,                      category: 'credential_harvest_git_creds',     severity: 'high' },
+  { pattern: /~\/\.netrc/,                                category: 'credential_harvest_netrc',         severity: 'high' },
+  { pattern: /~\/\.ssh\/id_rsa/,                          category: 'credential_harvest_ssh_key',       severity: 'high' },
+  { pattern: /~\/\.env\b/,                                category: 'credential_harvest_env_file',      severity: 'high' },
+  { pattern: /~\/\.kube\/config/,                         category: 'credential_harvest_k8s',           severity: 'high' },
   { pattern: /VAULT_TOKEN/i,                              category: 'credential_harvest_vault',         severity: 'high' },
   { pattern: /metamask|phantom.{0,20}extension/i,         category: 'credential_harvest_crypto_wallet', severity: 'medium' },
   { pattern: /solana.*keypair|ethereum.*keystore/i,        category: 'credential_harvest_crypto_keys',  severity: 'medium' },
