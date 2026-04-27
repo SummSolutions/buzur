@@ -2,7 +2,7 @@
 
 **Scan before you enter.**
 
-Buzur is an open-source **24-phase scanner** that protects AI agents and LLM applications from **indirect prompt injection attacks** (OWASP LLM Top 10 #1).
+Buzur is an open-source **25-phase scanner** that protects AI agents and LLM applications from **indirect prompt injection attacks** (OWASP LLM Top 10 #1).
 
 It inspects incoming content — web results, URLs, images (EXIF/QR/vision), tool outputs, RAG/memory data, MCP schemas, JSON APIs, adversarial suffixes, supply-chain artifacts, inter-agent messages, and more — **before** any data reaches your model. **Default behavior:** Silent Skip (`blocked`) threats while keeping your agent responsive. Comprehensive threat logging included.
 
